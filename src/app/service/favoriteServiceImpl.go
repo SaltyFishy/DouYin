@@ -11,6 +11,9 @@ type FavoriteServiceImpl struct {
 
 // 点赞
 func (fsi *FavoriteServiceImpl) FavoriteAction(userId int64, videoId int64, actionType int32) error {
+	if actionType == 2 {
+		actionType = 0
+	}
 	if _, err := model.FindFavoriteByUserIdAndVideoId(userId, videoId); errors.Is(err, gorm.ErrRecordNotFound) {
 		err := model.CreateFavorite(userId, videoId)
 		if err != nil {
@@ -33,10 +36,10 @@ func (fsi *FavoriteServiceImpl) GetFavoriteList(userId int64) ([]Video, error) {
 	for _, id := range videoIdList {
 		video, _ := model.GetVideoByVideoId(id)
 		Author, _ := usi.GetUserWithoutId(video.AuthorId)
-		favoriteInt8, _ := model.FindFavoriteByUserIdAndVideoId(userId, video.AuthorId)
+		favorite, _ := model.FindFavoriteByUserIdAndVideoId(userId, video.AuthorId)
 		favoriteCount, _ := model.GetFavoriteCount(id)
 		isFavorite := false
-		if favoriteInt8 == 1 {
+		if favorite == 1 {
 			isFavorite = true
 		}
 		//commentCount, _ := repository.CountComment(k)

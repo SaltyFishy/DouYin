@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"DouYin/src/app/middleware"
+	"DouYin/src/app/model"
 	"DouYin/src/app/service"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -20,13 +22,24 @@ type FavoriteListResponse struct {
 
 // 点赞
 func FavoriteAction(ctx context.Context, c *app.RequestContext) {
-	// token := c.Query("token")
-	strUserId := c.Query("user_id")
-	userId, _ := strconv.ParseInt(strUserId, 10, 64)
-	strVideoId := c.Query("video_id")
-	strActionType := c.Query("action_type")
-	videoId, _ := strconv.ParseInt(strVideoId, 10, 64)
-	actionType, _ := strconv.ParseInt(strActionType, 10, 64)
+
+	var token interface{}
+	var userId, videoId, actionType int64
+	var ok bool = false
+
+	if token, ok = c.Get(middleware.IdentityKey); ok == true {
+		userId = token.(*model.User).Id
+		strVideoId := c.Query("video_id")
+		strActionType := c.Query("action_type")
+		videoId, _ = strconv.ParseInt(strVideoId, 10, 64)
+		actionType, _ = strconv.ParseInt(strActionType, 10, 64)
+	} else {
+		c.JSON(http.StatusOK, UserInfoResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "Token Error"},
+		})
+
+	}
+
 	favorite := service.FavoriteServiceImpl{}
 	err := favorite.FavoriteAction(userId, videoId, int32(actionType))
 	if err == nil {
@@ -45,7 +58,6 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 // 获取喜欢列表
 func GetFavoriteList(ctx context.Context, c *app.RequestContext) {
 	strUserId := c.Query("user_id")
-	//token := c.Query("token")
 	userId, _ := strconv.ParseInt(strUserId, 10, 64)
 	fsi := service.FavoriteServiceImpl{}
 	favoriteList, err := fsi.GetFavoriteList(userId)

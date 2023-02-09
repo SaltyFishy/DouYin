@@ -25,7 +25,6 @@ func FindFavoriteByUserIdAndVideoId(userId int64, videoId int64) (int8, error) {
 		log.Println(err.Error())
 		return 0, err
 	}
-	log.Println(favorite)
 	return 1, nil
 }
 

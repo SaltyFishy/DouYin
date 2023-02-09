@@ -67,7 +67,6 @@ func PublishAction(ctx context.Context, c *app.RequestContext) {
 // 获取用户上传列表
 func GetPublishList(ctx context.Context, c *app.RequestContext) {
 	strUserId := c.Query("user_id")
-	// token := c.Query("token")
 	userId, _ := strconv.ParseInt(strUserId, 10, 64)
 	videoService := GetVideo()
 	publishList, err := videoService.GetPublishVideoList(userId)

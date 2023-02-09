@@ -1,6 +1,8 @@
 package model
 
-import "log"
+import (
+	"log"
+)
 
 type User struct {
 	Id       int64
@@ -54,9 +56,7 @@ func InsertUser(user *User) bool {
 // 检查用户是否合法
 func CheckUser(username string, password string) ([]*User, error) {
 	user := make([]*User, 0)
-	if err := Db.Where(Db.Or("user_name = ?", username).
-		Or("email = ?", username)).Where("password = ?", password).
-		Find(&user).Error; err != nil {
+	if err := Db.Where("username = ? AND password = ?", username, password).Find(&user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
