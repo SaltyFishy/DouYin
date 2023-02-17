@@ -11,33 +11,33 @@ type UserServiceImpl struct {
 }
 
 // Service 获取所有成员
-func (usi *UserServiceImpl) GetUserList() []model.User {
+func (usi *UserServiceImpl) GetUserList() ([]model.User, error) {
 	users, err := model.GetUserList()
 	if err != nil {
 		log.Println(err.Error())
-		return users
+		return []model.User{}, err
 	}
-	return users
+	return users, nil
 }
 
 // Service 根据名称获取用户
-func (usi *UserServiceImpl) GetUserByUsername(username string) model.User {
+func (usi *UserServiceImpl) GetUserByUsername(username string) (model.User, error) {
 	user, err := model.GetUserByName(username)
 	if err != nil {
 		log.Println(err.Error())
-		return user
+		return model.User{}, err
 	}
-	return user
+	return user, nil
 }
 
 // Service 根据id获取用户
-func (usi *UserServiceImpl) GetUserById(id int64) model.User {
+func (usi *UserServiceImpl) GetUserById(id int64) (model.User, error) {
 	user, err := model.GetUserById(id)
 	if err != nil {
 		log.Println(err.Error())
-		return user
+		return model.User{}, err
 	}
-	return user
+	return user, nil
 }
 
 // Service 插入新用户
@@ -50,9 +50,9 @@ func (usi *UserServiceImpl) InsertUser(user *model.User) bool {
 	return flag
 }
 
-// 不需要登录情况下,根据id获得User对象
+// model.User -> service.User
 // 开发ing-------------------------------------------------------------------------------------
-func (usi *UserServiceImpl) GetUserWithoutId(id int64) (User, error) {
+func (usi *UserServiceImpl) GetServiceUserById(id int64) (User, error) {
 	user := User{
 		Id:            0,
 		Name:          "",
@@ -67,14 +67,6 @@ func (usi *UserServiceImpl) GetUserWithoutId(id int64) (User, error) {
 		return user, err
 	}
 	log.Println("Query User Success")
-	//followCount, _ := usi.GetFollowingCnt(id)
-	//if err != nil {
-	//	log.Println("Err:", err.Error())
-	//}
-	//followerCount, _ := usi.GetFollowerCnt(id)
-	//if err != nil {
-	//	log.Println("Err:", err.Error())
-	//}
 	user = User{
 		Id:            id,
 		Name:          modelUser.Username,
@@ -83,16 +75,4 @@ func (usi *UserServiceImpl) GetUserWithoutId(id int64) (User, error) {
 		IsFollow:      false,
 	}
 	return user, nil
-}
-
-// 已登录情况下,根据id获得User对象
-// 开发ing-------------------------------------------------------------------------------------
-func (usi *UserServiceImpl) GetUserByCurId(curId int64) (User, error) {
-	//user, err := model.GetUserById(id)
-	//if err != nil {
-	//	log.Println(err.Error())
-	//	return user, err
-	//}
-	//return user, nil
-	return User{}, nil
 }

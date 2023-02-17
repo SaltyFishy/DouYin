@@ -9,7 +9,7 @@ import (
 type FavoriteServiceImpl struct {
 }
 
-// 点赞
+// 点赞行为
 func (fsi *FavoriteServiceImpl) FavoriteAction(userId int64, videoId int64, actionType int32) error {
 	if actionType == 2 {
 		actionType = 0
@@ -35,20 +35,20 @@ func (fsi *FavoriteServiceImpl) GetFavoriteList(userId int64) ([]Video, error) {
 	usi := UserServiceImpl{}
 	for _, id := range videoIdList {
 		video, _ := model.GetVideoByVideoId(id)
-		Author, _ := usi.GetUserWithoutId(video.AuthorId)
+		Author, _ := usi.GetServiceUserById(video.AuthorId)
 		favorite, _ := model.FindFavoriteByUserIdAndVideoId(userId, video.AuthorId)
 		favoriteCount, _ := model.GetFavoriteCount(id)
 		isFavorite := false
 		if favorite == 1 {
 			isFavorite = true
 		}
-		//commentCount, _ := repository.CountComment(k)
+		commentCount, _ := model.CountComment(id)
 		data := Video{
 			Id:            video.Id,
 			Author:        Author,
 			PlayUrl:       video.PlayUrl,
 			CoverUrl:      video.CoverUrl,
-			CommentCount:  0,
+			CommentCount:  commentCount,
 			FavoriteCount: favoriteCount,
 			IsFavorite:    isFavorite,
 			Title:         video.Title,

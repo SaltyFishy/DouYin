@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"DouYin/src/app/middleware"
+	"DouYin/src/app/middleware/jwt"
 	"DouYin/src/app/model"
 	"DouYin/src/app/service"
 	"context"
@@ -27,7 +27,7 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 	var userId, videoId, actionType int64
 	var ok bool = false
 
-	if token, ok = c.Get(middleware.IdentityKey); ok == true {
+	if token, ok = c.Get(jwt.IdentityKey); ok == true {
 		userId = token.(*model.User).Id
 		strVideoId := c.Query("video_id")
 		strActionType := c.Query("action_type")
@@ -37,7 +37,7 @@ func FavoriteAction(ctx context.Context, c *app.RequestContext) {
 		c.JSON(http.StatusOK, UserInfoResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "Token Error"},
 		})
-
+		return
 	}
 
 	favorite := service.FavoriteServiceImpl{}

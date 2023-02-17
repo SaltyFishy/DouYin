@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"DouYin/src/app/middleware"
+	"DouYin/src/app/middleware/jwt"
 	"DouYin/src/app/model"
 	"DouYin/src/app/service"
 	"DouYin/src/util"
@@ -48,7 +48,15 @@ func Register(ctx context.Context, c *app.RequestContext) {
 
 	usi := service.UserServiceImpl{}
 
-	user := usi.GetUserByUsername(registerStruct.Username)
+	user, err := usi.GetUserByUsername(registerStruct.Username)
+
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "Get User Error",
+		})
+		return
+	}
 
 	if user.Username == registerStruct.Username {
 		c.JSON(http.StatusOK, UserResponse{
@@ -57,6 +65,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 				StatusMsg:  "User already exist",
 			},
 		})
+		return
 	} else {
 		encodePassword := util.MD5(registerStruct.Password)
 
@@ -67,7 +76,15 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		if usi.InsertUser(&newUser) != true {
 			log.Println("Insert Data Fail")
 		}
-		u := usi.GetUserByUsername(registerStruct.Username)
+		u, err := usi.GetUserByUsername(registerStruct.Username)
+
+		if err != nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  "Get User Error",
+			})
+			return
+		}
 
 		token := registerStruct.Username + encodePassword
 
@@ -89,7 +106,15 @@ func Login(ctx context.Context, c *app.RequestContext) {
 
 	usi := service.UserServiceImpl{}
 
-	user := usi.GetUserByUsername(username)
+	user, err := usi.GetUserByUsername(username)
+
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "Get User Error",
+		})
+		return
+	}
 
 	if encodePassword == user.Password {
 		token := username + encodePassword
@@ -112,7 +137,7 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	var userId int64
 	var ok bool = false
 
-	if token, ok = c.Get(middleware.IdentityKey); ok == true {
+	if token, ok = c.Get(jwt.IdentityKey); ok == true {
 		log.Println(token)
 		strUserId := c.Query("user_id")
 		userId, _ = strconv.ParseInt(strUserId, 10, 64)
@@ -121,17 +146,16 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 		c.JSON(http.StatusOK, UserInfoResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "Token Error"},
 		})
-
+		return
 	}
 
 	log.Printf("userController Get : %v\n", userId)
 
 	usi := service.UserServiceImpl{
-		//	FollowService: &service.FollowServiceImp{},
 		FavoriteService: &service.FavoriteServiceImpl{},
 	}
 
-	if u, err := usi.GetUserWithoutId(userId); err != nil {
+	if u, err := usi.GetServiceUserById(userId); err != nil {
 		c.JSON(http.StatusOK, UserInfoResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User Doesn't Exist"},
 		})

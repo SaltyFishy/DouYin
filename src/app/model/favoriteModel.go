@@ -20,6 +20,9 @@ func (Favorite) TableName() string {
 
 // 查找是否有过点赞记录， 0没有找到，1找到了
 func FindFavoriteByUserIdAndVideoId(userId int64, videoId int64) (int8, error) {
+	if userId == -1 {
+		return 0, nil
+	}
 	var favorite Favorite
 	if err := Db.Model(&Favorite{}).Where("user_id = ? AND video_id = ?", userId, videoId).First(&favorite).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Println(err.Error())
@@ -44,8 +47,7 @@ func CreateFavorite(userId int64, videoId int64) error {
 
 // 根据userId，videoId,actionType点赞或取消
 func UpdateFavorite(userId int64, videoId int64, actionType int32) error {
-	if err := Db.Model(&Favorite{}).Where(map[string]interface{}{"user_id": userId, "video_id": videoId}).
-		Update("cancel", actionType).Error; err != nil {
+	if err := Db.Model(&Favorite{}).Where("user_id = ? AND video_id = ?", userId, videoId).Update("cancel", actionType).Error; err != nil {
 		log.Println(err.Error())
 		return err
 	}
@@ -55,25 +57,22 @@ func UpdateFavorite(userId int64, videoId int64, actionType int32) error {
 // 根据userId查询所属点赞全部videoId
 func GetFavoriteVideoIdList(userId int64) ([]int64, error) {
 	var FavoriteVideoIdList []int64
-	if err := Db.Model(&Favorite{}).Where(map[string]interface{}{"user_id": userId, "cancel": conf.Favorite}).
-		Pluck("video_id", &FavoriteVideoIdList).Error; err != nil {
-		if "record not found" == err.Error() {
-			log.Println("there are no likeVideoId")
-			return FavoriteVideoIdList, nil
-		} else {
-			log.Println(err.Error())
-			return FavoriteVideoIdList, err
-		}
+	if err := Db.Model(&Favorite{}).Where("user_id = ? AND cancel = ?", userId, conf.Favorite).Pluck("video_id", &FavoriteVideoIdList).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println("video not found")
+		return []int64{}, nil
+	} else if err != nil {
+		log.Println(err.Error())
+		return []int64{}, nil
 	}
 	return FavoriteVideoIdList, nil
 }
 
 // 获取视频被点赞次数
 func GetFavoriteCount(videoId int64) (int64, error) {
-	var counter int64 = -1
+	var counter int64
 	if err := Db.Model(&Favorite{}).Where("video_id = ? AND cancel = ?", videoId, 1).Find(&counter).Error; err != nil {
 		log.Println(err.Error())
-		return counter, err
+		return 0, err
 	}
 	return counter, nil
 }

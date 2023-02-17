@@ -1,7 +1,8 @@
 package main
 
 import (
-	"DouYin/src/app/middleware"
+	"DouYin/src/app/middleware/ftp"
+	"DouYin/src/app/middleware/jwt"
 	"DouYin/src/app/model"
 	"DouYin/src/router"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -12,10 +13,11 @@ func main() {
 	InitDeps()
 
 	// 中间件
-	middleware.InitJwt()
+	jwt.InitJwt()
 
 	h := server.Default()
 
+	// 初始化路由
 	router.Init(h)
 
 	h.Spin()
@@ -24,5 +26,6 @@ func main() {
 func InitDeps() {
 	//加载数据库
 	model.Init()
-
+	//建立FTP
+	ftp.InitFTP()
 }

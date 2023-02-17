@@ -48,13 +48,3 @@ func GetVideosByLastTime(lastTime time.Time) ([]Video, error) {
 	}
 	return videos, nil
 }
-
-// 根据作者id获取视频id
-func GetVideoIdsByAuthorId(authorId int64) ([]int64, error) {
-	videoId := []int64{}
-	if err := Db.Model(&Video{}).Where(&Video{AuthorId: authorId}).Pluck("id", &videoId).Error; err != nil {
-		log.Println(err.Error())
-		return videoId, err
-	}
-	return videoId, nil
-}

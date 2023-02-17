@@ -1,6 +1,7 @@
 package service
 
 import (
+	"mime/multipart"
 	"time"
 )
 
@@ -18,14 +19,11 @@ type Video struct {
 
 type VideoService interface {
 	// 传入时间戳，用户id，返回视频切片数组，以及本次返回的视频中，发布最早的时间，作为下次请求时的latest_time
-	Feed(lastTime time.Time) ([]Video, time.Time, error)
-
-	// 传入视频id获得对应的视频对象
-	GetVideo(videoId int64) (Video, error)
+	Feed(userId int64, lastTime time.Time) ([]Video, time.Time, error)
 
 	// 通过authorId来查询对应用户发布的视频，并返回对应的视频切片数组
-	GetPublishVideoList(authorId int64) ([]Video, error)
+	GetPublishVideoList(userId int64, authorId int64) ([]Video, error)
 
-	// 通过一个作者id，返回该用户发布的视频id切片数组
-	GetVideoIdList(authorId int64) ([]int64, error)
+	// 上传视频
+	Publish(userId int64, title string, data *multipart.FileHeader) error
 }

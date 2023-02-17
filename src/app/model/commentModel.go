@@ -13,21 +13,20 @@ type Comment struct {
 	VideoId    int64
 	Content    string
 	CreateTime time.Time
-	Cancel     int8
 }
 
 func (Comment) TableName() string {
 	return "comments"
 }
 
-// 查找是否有过评论记录， 0没有找到，1找到了
-func FindCommentByUserIdAndVideoId(userId int64, videoId int64) (int8, error) {
-	var comment Comment
-	if err := Db.Model(&Comment{}).Where("user_id = ? AND video_id = ?", userId, videoId).First(&comment).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+// 统计评论数
+func CountComment(videoId int64) (int64, error) {
+	var cnt int64
+	if err := Db.Model(&Comment{}).Where("video_id = ?", videoId).Count(&cnt).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Println(err.Error())
 		return 0, err
 	}
-	return 1, nil
+	return cnt, nil
 }
 
 // 创建评论,1表示评论存在，0表示评论不存在
@@ -37,7 +36,6 @@ func CreateComment(userId int64, videoId int64, content string) error {
 		VideoId:    videoId,
 		Content:    content,
 		CreateTime: time.Now(),
-		Cancel:     1,
 	}
 	if err := Db.Model(&Comment{}).Create(&comment).Error; err != nil {
 		log.Println(err.Error())
@@ -46,12 +44,23 @@ func CreateComment(userId int64, videoId int64, content string) error {
 	return nil
 }
 
+// 删除评论
+func DeleteComment(userId int64, videoId int64, commentId int64) error {
+	var comment Comment
+	if err := Db.Model(&Comment{}).Where("user_id = ? AND video_id = ? AND comment_id = ?", userId, videoId, commentId).First(&comment).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println(err.Error())
+		return err
+	}
+	Db.Model(&Comment{}).Delete(&comment)
+	return nil
+}
+
 // 获取某个视频的评论
 func GetCommentList(videoId int64) ([]Comment, error) {
 	var commentList []Comment
 	if err := Db.Model(&Comment{}).Where("video_id = ?", videoId).Find(&commentList).Error; err != nil {
 		log.Println("Get commentList Error on commentModel")
-		return nil, err
+		return []Comment{}, err
 	}
 	return commentList, nil
 }
