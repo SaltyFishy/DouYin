@@ -1,7 +1,6 @@
 package service
 
 import (
-	"mime/multipart"
 	"time"
 )
 
@@ -25,5 +24,5 @@ type VideoService interface {
 	GetPublishVideoList(userId int64, authorId int64) ([]Video, error)
 
 	// 上传视频
-	Publish(userId int64, title string, data *multipart.FileHeader) error
+	Publish(userId int64, title string, playUrl string, coverUrl string) error
 }

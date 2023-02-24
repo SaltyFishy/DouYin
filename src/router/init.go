@@ -3,10 +3,12 @@ package router
 import (
 	"DouYin/src/app/controller"
 	"DouYin/src/app/middleware/jwt"
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 func Init(h *server.Hertz) {
+	h.StaticFS("/src/public", &app.FS{Root: "./", GenerateIndexPages: true})
 	// 路由组
 	apiRouter := h.Group("/douyin")
 	{

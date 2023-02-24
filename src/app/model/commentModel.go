@@ -30,7 +30,7 @@ func CountComment(videoId int64) (int64, error) {
 }
 
 // 创建评论,1表示评论存在，0表示评论不存在
-func CreateComment(userId int64, videoId int64, content string) error {
+func CreateComment(userId int64, videoId int64, content string) (Comment, error) {
 	comment := Comment{
 		UserId:     userId,
 		VideoId:    videoId,
@@ -39,15 +39,15 @@ func CreateComment(userId int64, videoId int64, content string) error {
 	}
 	if err := Db.Model(&Comment{}).Create(&comment).Error; err != nil {
 		log.Println(err.Error())
-		return err
+		return Comment{}, err
 	}
-	return nil
+	return comment, nil
 }
 
 // 删除评论
 func DeleteComment(userId int64, videoId int64, commentId int64) error {
 	var comment Comment
-	if err := Db.Model(&Comment{}).Where("user_id = ? AND video_id = ? AND comment_id = ?", userId, videoId, commentId).First(&comment).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := Db.Model(&Comment{}).Where("user_id = ? AND video_id = ? AND id = ?", userId, videoId, commentId).Find(&comment).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Println(err.Error())
 		return err
 	}

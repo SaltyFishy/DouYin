@@ -1,15 +1,20 @@
 package controller
 
 import (
+	"DouYin/src/app/middleware/ffmpeg"
 	"DouYin/src/app/middleware/jwt"
 	"DouYin/src/app/model"
 	"DouYin/src/app/service"
 	"context"
+	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -94,14 +99,60 @@ func PublishAction(ctx context.Context, c *app.RequestContext) {
 		})
 		return
 	}
-	videoService := service.VideoServiceImpl{}
-	if err := videoService.Publish(userId, title, data); err != nil {
+	//videoService := service.VideoServiceImpl{}
+	filename := filepath.Base(data.Filename)
+	playUrl := filepath.Join("src/public/", fmt.Sprintf("%d_%s_%s", userId, title, filename))
+	log.Println(playUrl)
+	if err := c.SaveUploadedFile(data, playUrl); err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  "Publish failed",
 		})
 		return
 	}
+	coverUrl, err := ffmpeg.GetSnapshot(playUrl, title, 1)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "Publish failed",
+		})
+		return
+	}
+	videoService := service.VideoServiceImpl{}
+	if err := videoService.Publish(userId, title, playUrl, coverUrl); err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "Publish failed",
+		})
+		return
+	}
+	content, err := os.ReadFile(playUrl)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  "Publish failed",
+		})
+		return
+	}
+	words := strings.Split(playUrl, " ")
+	suffix := words[len(words) - 1]
+	if suffix == ".mp4" {
+		c.Data(200, "src/public", content)
+	}
+	if suffix == ".png" {
+		c.Data(200, "src/public", content)
+	}
+	//if err := videoService.Publish(userId, title, data); err != nil {
+	//	c.JSON(http.StatusOK, Response{
+	//		StatusCode: 1,
+	//		StatusMsg:  "Publish failed",
+	//	})
+	//	return
+	//}
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
 		StatusMsg:  "Publish suc",

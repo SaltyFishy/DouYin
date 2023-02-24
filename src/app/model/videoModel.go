@@ -48,3 +48,20 @@ func GetVideosByLastTime(lastTime time.Time) ([]Video, error) {
 	}
 	return videos, nil
 }
+
+// 存入数据库
+func Publish(userId int64, title string, playUrl string, coverUrl string) error {
+	if err := Db.Model(&Video{}).Create(map[string]interface{}{
+		"AuthorId":userId,
+		"PlayUrl":playUrl,
+		"CoverUrl":coverUrl,
+		"Title":title,
+		"PublishTime":time.Now(),
+	}).Error; err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	return nil
+}
+
+

@@ -25,7 +25,6 @@ func FindFavoriteByUserIdAndVideoId(userId int64, videoId int64) (int8, error) {
 	}
 	var favorite Favorite
 	if err := Db.Model(&Favorite{}).Where("user_id = ? AND video_id = ?", userId, videoId).First(&favorite).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Println(err.Error())
 		return 0, err
 	}
 	return 1, nil
@@ -70,7 +69,7 @@ func GetFavoriteVideoIdList(userId int64) ([]int64, error) {
 // 获取视频被点赞次数
 func GetFavoriteCount(videoId int64) (int64, error) {
 	var counter int64
-	if err := Db.Model(&Favorite{}).Where("video_id = ? AND cancel = ?", videoId, 1).Find(&counter).Error; err != nil {
+	if err := Db.Model(&Favorite{}).Where("video_id = ? AND cancel = ?", videoId, 1).Count(&counter).Error; err != nil {
 		log.Println(err.Error())
 		return 0, err
 	}

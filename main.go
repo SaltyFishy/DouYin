@@ -1,7 +1,6 @@
 package main
 
 import (
-	"DouYin/src/app/middleware/ftp"
 	"DouYin/src/app/middleware/jwt"
 	"DouYin/src/app/model"
 	"DouYin/src/router"
@@ -26,6 +25,4 @@ func main() {
 func InitDeps() {
 	//加载数据库
 	model.Init()
-	//建立FTP
-	ftp.InitFTP()
 }

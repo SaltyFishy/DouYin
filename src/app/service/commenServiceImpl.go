@@ -8,11 +8,21 @@ import (
 type CommentServiceImpl struct {
 }
 
-func (csi *CommentServiceImpl) CreateComment(userId int64, videoId int64, commentText string) error {
-	if err := model.CreateComment(userId, videoId, commentText); err != nil {
-		return err
+func (csi *CommentServiceImpl) CreateComment(userId int64, videoId int64, commentText string) (Comment, error) {
+	var data model.Comment
+	var err error
+	if data, err = model.CreateComment(userId, videoId, commentText); err != nil {
+		return Comment{}, err
 	}
-	return nil
+	usi := UserServiceImpl{}
+	user, _ := usi.GetServiceUserById(userId)
+	comment := Comment{
+		Id:         data.Id,
+		User:       user,
+		Content:    commentText,
+		CreateDate: data.CreateTime,
+	}
+	return comment, nil
 }
 
 func (csi *CommentServiceImpl) DeleteComment(userId int64, videoId int64, commentId int64) error {
@@ -25,9 +35,9 @@ func (csi *CommentServiceImpl) DeleteComment(userId int64, videoId int64, commen
 func (csi *CommentServiceImpl) GetCommentList(videoId int64) ([]Comment, error) {
 	modelCommentList, _ := model.GetCommentList(videoId)
 	commentList := make([]Comment, 0, len(modelCommentList))
-	vsi := VideoServiceImpl{}
+	usi := UserServiceImpl{}
 	for _, comment := range modelCommentList {
-		user, _ := vsi.GetServiceUserById(comment.UserId)
+		user, _ := usi.GetServiceUserById(comment.UserId)
 		data := Comment{
 			Id:         comment.Id,
 			User:       user,

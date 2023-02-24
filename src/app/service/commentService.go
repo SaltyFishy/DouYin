@@ -4,7 +4,7 @@ import "time"
 
 type Comment struct {
 	Id         int64 `json:"id"`
-	User       User
+	User       User  `json:"user"`
 	Content    string    `json:"content"`
 	CreateDate time.Time `json:"create_date"`
 }
@@ -15,7 +15,7 @@ type CommentService interface {
 	GetCommentList(videoId int64) ([]Comment, error)
 
 	// 评论操作，添加评论
-	CreateComment(userId int64, videoId int64, commentText string) error
+	CreateComment(userId int64, videoId int64, commentText string) (Comment, error)
 
 	// 评论操作，删除评论
 	DeleteComment(userId int64, videoId int64, commentId int64) error

@@ -3,9 +3,7 @@ package service
 import (
 	"DouYin/src/app/model"
 	"DouYin/src/conf"
-	"fmt"
 	"log"
-	"mime/multipart"
 	"sync"
 	"time"
 )
@@ -21,21 +19,16 @@ type VideoServiceImpl struct {
 // Service 获取视频
 func (vsi *VideoServiceImpl) Feed(userId int64, lastTime time.Time) ([]Video, time.Time, error) {
 	videos := make([]Video, 0, conf.VideoMaxCount)
-	fmt.Println(lastTime)
 	modelVideos, err := model.GetVideosByLastTime(lastTime)
 	if err != nil {
 		log.Printf(err.Error())
 		return nil, time.Time{}, err
 	}
-	log.Printf("get lastTime suc")
-	fmt.Println(modelVideos)
 	err = vsi.copyVideos(userId, &videos, &modelVideos)
 	if err != nil {
 		log.Printf(err.Error())
 		return nil, time.Time{}, err
 	}
-	log.Printf("copy suc")
-	fmt.Println(videos)
 	return videos, modelVideos[len(modelVideos)-1].PublishTime, nil
 }
 
@@ -72,38 +65,35 @@ func (vsi *VideoServiceImpl) generateVideo(userId int64, video *Video, data *mod
 	author, err := vsi.GetServiceUserById(data.AuthorId)
 	if err != nil {
 		video.Author = User{}
-		log.Printf("方法vsi.GetServiceUserById 失败：%v", err)
+		log.Printf("vsi.GetServiceUserById 失败：%v", err)
 	} else {
 		video.Author = author
-		log.Printf("方法vsi.GetServiceUserById 成功")
 	}
 
 	video.FavoriteCount, err = model.GetFavoriteCount(data.Id)
 	if err != nil {
-		log.Printf("方法model.GetFavoriteCount 失败：%v", err)
-	} else {
-		log.Printf("方法model.GetFavoriteCount 成功")
+		log.Printf("model.GetFavoriteCount 失败：%v", err)
 	}
 
 	video.CommentCount, err = vsi.GetCommentCountByVideoId(data.Id)
 	if err != nil {
-		log.Printf("方法GetCommentCountByVideoId 失败：%v", err)
-	} else {
-		log.Printf("方法GetCommentCountByVideoId 成功")
+		log.Printf("GetCommentCountByVideoId 失败：%v", err)
 	}
 
 	favorite, err := model.FindFavoriteByUserIdAndVideoId(userId, video.Id)
 	if err != nil {
-		log.Printf("方法FindFavoriteByUserIdAndVideoId 失败：%v", err)
+
 	} else {
-		log.Printf("方法FindFavoriteByUserIdAndVideoId 成功")
 		if favorite == 1 {
 			video.IsFavorite = true
 		}
 	}
 }
 
-func (vsi *VideoServiceImpl) Publish(userId int64, title string, data *multipart.FileHeader) error {
-
+func (vsi *VideoServiceImpl) Publish(userId int64, title string, playUrl string, coverUrl string) error {
+	if err := model.Publish(userId, title, playUrl, coverUrl); err!= nil {
+		log.Println(err.Error())
+		return err
+	}
 	return nil
 }

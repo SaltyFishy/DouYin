@@ -16,6 +16,11 @@ type CommentResponse struct {
 	CommentList []service.Comment `json:"comment_list"`
 }
 
+type CommentActionResponse struct {
+	Response
+	Comment service.Comment `json:"comment"`
+}
+
 func CommentAction(ctx context.Context, c *app.RequestContext) {
 	var token interface{}
 	var userId, videoId, actionType int64
@@ -27,22 +32,23 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		strActionType := c.Query("action_type")
 		actionType, _ = strconv.ParseInt(strActionType, 10, 64)
 	} else {
-		c.JSON(http.StatusOK, CommentResponse{
+		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "Token Error"},
 		})
 		return
 	}
 	commentService := service.CommentServiceImpl{}
 	if actionType == 1 {
-		commentTxet := c.Query("comment_text")
-		err := commentService.CreateComment(userId, videoId, commentTxet)
+		commentText := c.Query("comment_text")
+		comment, err := commentService.CreateComment(userId, videoId, commentText)
 		if err != nil {
-			c.JSON(http.StatusOK, CommentResponse{
+			c.JSON(http.StatusOK, CommentActionResponse{
 				Response: Response{StatusCode: 1, StatusMsg: "插入评论失败"},
 			})
 		} else {
-			c.JSON(http.StatusOK, CommentResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "插入评论成功"},
+			c.JSON(http.StatusOK, CommentActionResponse{
+				Response: Response{StatusCode: 0, StatusMsg: "插入评论成功"},
+				Comment: comment,
 			})
 		}
 	} else if actionType == 2 {
@@ -50,12 +56,12 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		commentId, _ := strconv.ParseInt(strCommentId, 10, 64)
 		err := commentService.DeleteComment(userId, videoId, commentId)
 		if err != nil {
-			c.JSON(http.StatusOK, CommentResponse{
+			c.JSON(http.StatusOK, CommentActionResponse{
 				Response: Response{StatusCode: 1, StatusMsg: "评论不存在或已删除"},
 			})
 		} else {
-			c.JSON(http.StatusOK, CommentResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "删除成功"},
+			c.JSON(http.StatusOK, CommentActionResponse{
+				Response: Response{StatusCode: 0, StatusMsg: "删除成功"},
 			})
 		}
 	}
@@ -73,7 +79,7 @@ func GetCommentList(ctx context.Context, c *app.RequestContext) {
 		})
 	} else {
 		c.JSON(http.StatusOK, CommentResponse{
-			Response:    Response{StatusCode: 1, StatusMsg: "Get CommentList suc"},
+			Response:    Response{StatusCode: 0, StatusMsg: "Get CommentList suc"},
 			CommentList: commentList,
 		})
 	}

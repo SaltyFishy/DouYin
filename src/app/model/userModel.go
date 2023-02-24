@@ -27,7 +27,7 @@ func GetUserList() ([]User, error) {
 // 根据名称获取用户
 func GetUserByName(username string) (User, error) {
 	user := User{}
-	if err := Db.Where("username = ?", username).First(&user).Error; err != nil {
+	if err := Db.Where("username = ?", username).Find(&user).Error; err != nil {
 		log.Println(err.Error())
 		return user, err
 	}
@@ -37,7 +37,7 @@ func GetUserByName(username string) (User, error) {
 // 根据Id获取用户
 func GetUserById(id int64) (User, error) {
 	user := User{}
-	if err := Db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := Db.Where("id = ?", id).Find(&user).Error; err != nil {
 		log.Println(err.Error())
 		return user, err
 	}

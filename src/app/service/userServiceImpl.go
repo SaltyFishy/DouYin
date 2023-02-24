@@ -51,7 +51,6 @@ func (usi *UserServiceImpl) InsertUser(user *model.User) bool {
 }
 
 // model.User -> service.User
-// 开发ing-------------------------------------------------------------------------------------
 func (usi *UserServiceImpl) GetServiceUserById(id int64) (User, error) {
 	user := User{
 		Id:            0,
@@ -66,7 +65,6 @@ func (usi *UserServiceImpl) GetServiceUserById(id int64) (User, error) {
 		log.Println("User Not Found")
 		return user, err
 	}
-	log.Println("Query User Success")
 	user = User{
 		Id:            id,
 		Name:          modelUser.Username,

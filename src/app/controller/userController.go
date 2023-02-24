@@ -6,7 +6,9 @@ import (
 	"DouYin/src/app/service"
 	"DouYin/src/util"
 	"context"
+	"errors"
 	"github.com/cloudwego/hertz/pkg/app"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
@@ -50,10 +52,12 @@ func Register(ctx context.Context, c *app.RequestContext) {
 
 	user, err := usi.GetUserByUsername(registerStruct.Username)
 
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+
+	} else if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  "Get User Error",
+			StatusMsg:  "Get User Err",
 		})
 		return
 	}
@@ -81,7 +85,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		if err != nil {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: 1,
-				StatusMsg:  "Get User Error",
+				StatusMsg:  "Get User Error After Insert",
 			})
 			return
 		}
